@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>机器人搬运与入篮 · 3D空间规划</title>
+<style>
+:root{font-family:Inter,"PingFang SC","Microsoft YaHei",sans-serif;color:#e5eff4;background:#0b131a;color-scheme:dark}*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}header{height:82px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-bottom:1px solid #ffffff12;background:#101c25}.brand{font-size:11px;letter-spacing:3px;color:#67dcc5}h1{font-size:21px;margin:7px 0 0;font-weight:550}.badge{border:1px solid #67dcc540;color:#8ce5d2;border-radius:20px;padding:8px 13px;font-size:12px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;height:calc(100dvh - 82px)}.viewport{position:relative;min-height:520px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#223847,#101c26 75%)}canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.topline{position:absolute;left:25px;top:23px;pointer-events:none}.eyebrow{color:#8faab9;font-size:11px;letter-spacing:2px}.topline strong{display:block;font-size:30px;margin-top:8px;font-weight:400}.topline small{color:#9bb3c1;font-size:12px}.tools{position:absolute;right:20px;top:24px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:225px}button{border:1px solid #ffffff20;background:#162936e8;color:#c8dbe7;border-radius:7px;padding:9px 12px;font-size:12px}button:hover,button.active{background:#27483f;color:#99f4d9;border-color:#6adeb878}button:focus-visible{outline:2px solid #83e8cd;outline-offset:3px}.hint{position:absolute;left:24px;bottom:22px;color:#a2bac8;font-size:12px;pointer-events:none}.compass{position:absolute;right:25px;bottom:22px;font-size:12px;color:#7de0cb}.sidebar{padding:24px;overflow:auto;border-left:1px solid #ffffff12;background:#101b24}h2{font-size:16px;font-weight:550;margin:0 0 15px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:25px}.metric{padding:12px 8px;background:#182831;border-radius:7px}.metric b{display:block;font-size:22px;font-weight:450}.metric span{font-size:10px;color:#8fa7b5}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.section-title h2{margin:0}.section-title span{font-size:10px;color:#829eae}.task{width:100%;display:flex;align-items:center;text-align:left;gap:11px;padding:11px 9px;margin-bottom:7px;background:transparent;border-color:#ffffff0d}.num{flex:none;width:29px;height:29px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);font-size:11px;font-weight:650}.task b{display:block;font-size:12px;font-weight:500}.task small{display:block;font-size:10px;color:#8fa7b5;margin-top:4px}.detail{border-left:2px solid #69d6bd;padding:10px 12px;background:#172b31;font-size:12px;line-height:1.8;margin:14px 0 24px;min-height:85px;color:#bbd0da}.equipment{border-top:1px solid #ffffff12;padding-top:18px}.row{display:flex;justify-content:space-between;font-size:12px;margin:13px 0;color:#a7bdc9}.row strong{font-weight:400;color:#d6e5ec}.legend{display:flex;gap:13px;font-size:10px;color:#9db6c4;margin:20px 0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.warning{padding:12px;border:1px solid #d8ae5433;background:#b5891f09;color:#b8aa89;font-size:11px;line-height:1.8;border-radius:6px}.footer{font-size:10px;color:#698594;margin-top:18px;line-height:1.7}@media(max-width:850px){.layout{grid-template-columns:1fr;height:auto}.viewport{height:65dvh;min-height:470px}.sidebar{border-left:0;border-top:1px solid #ffffff12}.metrics{margin-bottom:18px}header{height:75px;padding:0 18px}h1{font-size:17px}.badge{font-size:10px}.topline{left:18px;top:20px}.topline strong{font-size:24px}.tools{max-width:150px;right:14px}.hint{left:15px;font-size:10px}.sidebar{padding:22px}.tasks{display:grid;grid-template-columns:1fr 1fr;gap:6px}.task{margin:0}.detail{min-height:auto}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+.playback{position:absolute;left:20px;bottom:52px;right:20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;background:#0d202be8;border:1px solid #ffffff20;border-radius:10px}.playback select{padding:8px;background:#162936;color:#c8dbe7;border:1px solid #ffffff20;border-radius:6px}.playback output{font-size:12px;color:#8ce5d2}.playback progress{width:100%;height:4px;accent-color:#69dcc0}
+</style>
+</head>
+<body>
+<header><div><div class="brand">PICK & PLACE / SPACE STUDY 01</div><h1>人形机器人 · 搬运与入篮展示空间</h1></div><span class="badge">概念布局 / 非施工图</span></header>
+<main class="layout">
+<section class="viewport" aria-label="可交互的机器人展台三维规划">
+<canvas id="scene" tabindex="0" aria-label="三维模型：拖动旋转，滚轮或双指缩放；键盘方向键旋转，加减键缩放"></canvas>
+<div class="topline"><div class="eyebrow">INTERACTIVE SPACE MODEL</div><strong>5 × 5 × 4 <small>m</small></strong><small>双展台 / 五任务 / 一体化控制</small></div>
+<div class="tools"><button id="perspective" class="active">透视</button><button id="top">俯视</button><button id="front">正面</button><button id="labels" class="active" aria-pressed="true">标注</button><button id="zones" class="active" aria-pressed="true">区域</button><button id="reset">复位</button></div>
+<div class="playback"><button id="play">暂停演示</button><button id="replay">从头演示</button><label>速度 <select id="speed" aria-label="动画速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label><output id="motionStatus" aria-live="polite"></output><progress id="motionProgress" max="42" value="0" aria-label="整轮演示进度"></progress></div>
+<div class="hint">拖动旋转 · 滚轮 / 双指缩放 · 依次演示 R1–R5</div><div class="compass">观众入口 ↓ 前侧</div>
+</section>
+<aside class="sidebar">
+<h2>空间配置</h2><div class="metrics"><div class="metric"><b>25<span> m²</span></b><span>占地面积</span></div><div class="metric"><b>5<span> 台</span></b><span>4 台操作 / 1 台行走</span></div><div class="metric"><b>4<span> m</span></b><span>假定净高</span></div></div>
+<div class="section-title"><h2>任务工作站</h2><span>选择以高亮</span></div><div class="tasks" id="tasks"></div>
+<div id="detail" class="detail" aria-live="polite">A 展台沿左侧布置，B 展台面向观众，电脑台位于右后角。新增 D 小操作台（0.5 × 0.5 × 0.6 m）：R5 从 D 台拿小盒子，行走搬到 A 台后端独立篮筐内，空手返回。点击下方按钮可直接观看。</div>
+<button id="walkDemo">观看 R5 搬盒入篮</button>
+<div class="row"><strong>D / 取盒小操作台</strong><span>0.5 × 0.5 × 0.6 m</span></div>
+<div class="equipment"><h2>设备尺寸 · 长 × 深 × 高</h2><div class="row"><strong>A / 定点搬运台</strong><span>2 × 1.2 × 0.6 m</span></div><div class="row"><strong>B / 抓取入篮台 · 面向观众</strong><span>2 × 1.2 × 0.6 m</span></div><div class="row"><strong>C / 电脑操作台</strong><span>1.2 × 0.8 × 0.6 m</span></div><div class="row"><strong>两台侧边净距</strong><span>1.35 m（含操作区域）</span></div><div class="row"><strong>前侧预留带</strong><span>0.80 m 深</span></div></div>
+<div class="detail">演示策略：固定取物点 → 抓取工业元件 → 抬升搬移 → 低位放入周转篮。R1–R5 依次演示，整轮结束后自动重置物料；现场需停机后人工复位。优先选用轻质、无锐边、易夹持的工业元件，不要求装配、精确摆正或分类。动画仅为流程示意，未校核真实关节限制、臂展、夹持力及碰撞，不可直接用于机器人控制。</div>
+<div class="legend"><span><i class="dot" style="background:#64d9b3"></i>操作站位</span><span><i class="dot" style="background:#62b6e8"></i>观看预留</span><span><i class="dot" style="background:#e6b86b"></i>设备区域</span></div>
+<div class="warning">机器人外观：5 台宇树 G1 风格简化模型，约 1.32 m 身高，非官方 CAD；手部为概念夹持器。R1–R4 固定站位操作，R5 单独行走，其余机器人静止。步行动画不包含真实步态控制、足底接触或动力学验证；路线色带与站位圆圈不是安全包络。需实测臂展、碰撞、制动距离、平台承载与边缘防跌落，并配置隔离和急停。观众在站台外观看，电脑操作人员不得进入行走区。前侧 0.80 m 不代表合规通道，0.60 m 台高需复核。</div>
+<div class="footer">本模型使用米制坐标；4 m 按净高解释，平台厚度仅示意。电脑操作台配显示器、键盘和鼠标示意，台高不含显示器，座椅暂未布置。离线可用，无第三方依赖。</div>
+</aside>
+</main>
+<script>
+'use strict';
+const canvas=document.getElementById('scene'),ctx=canvas.getContext('2d');
+const tasks=[
+ {id:'R1',name:'壳体搬运',sub:'展台 A · 定点到定点',color:'#69dcc0',x:-.68,z:.82,dir:-1,desc:'从固定垫板抓取轻质工业壳体，搬到旁边的大面积目标垫板；选择平整夹持面，无需装配、对齐或堆叠，停机后人工复位。'},
+ {id:'R2',name:'端盖入篮',sub:'展台 A · 短距搬运',color:'#a7d786',x:-.68,z:-.2,dir:-1,desc:'将固定位置的轻质工业端盖抓起，短距离搬至带软垫周转篮上方，降低后松手；选用无锐边、易夹持端盖，与 R1、R5 分时运行。'},
+ {id:'R3',name:'工业元件入篮',sub:'展台 B · 面向观众',color:'#72beef',x:.75,z:-.17,dir:0,desc:'面向观众，从预设位置抓取工业接线盒壳体，低位放入固定周转篮；仅做搬运，不接线、不插接，不做散乱堆抓取。'},
+ {id:'R4',name:'模块收纳',sub:'展台 B · 面向观众',color:'#baa0ee',x:1.75,z:-.17,dir:0,desc:'从预设位置逐件抓取外壳封闭的工业模块，放入带软垫周转篮；使用断电、无外露精密端子的展示件，不要求精确排列，与 R3 分时运行。'},
+ {id:'R5',name:'行走搬盒入篮',sub:'小操作台 D → A 台篮筐',color:'#e6b86b',x:.1,z:-1.65,dir:0,desc:'从 0.5 × 0.5 × 0.6 m 的 D 小操作台拿起小盒子，侧向步行约 1.8 m 搬至 A 台后端，放入独立篮筐，再空手返回。与 A 台其他机器人分时运行；动作仅为流程示意，需验证实际抓握、臂展、侧向步态与安全距离。'}
+];
+let selected=-1,showLabels=true,showZones=true,yaw=.67,pitch=.57,zoom=1,W=0,H=0,faces=[],lines=[],tags=[];
+let elapsed=0,playing=!window.matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,lastFrame=null;
+const moves=[
+ {from:[-1.42,.615,.57],to:[-1.42,.615,1.02],kind:'housing'},
+ {from:[-1.42,.615,-.25],to:[-1.86,.625,.03],kind:'cover'},
+ {from:[.5,.615,.48],to:[.96,.625,.58],kind:'housing'},
+ {from:[1.5,.615,.48],to:[1.96,.625,.58],kind:'module'},
+ {from:[.1,.6,-1],to:[-1.7,.625,-.52],kind:'smallbox'},
+];
+function mix(a,b,t){t=Math.max(0,Math.min(1,t));t=t*t*(3-2*t);return a.map((v,i)=>v+(b[i]-v)*t);}
+function motion(i){const t=Math.max(0,Math.min(8,elapsed-i*8)),active=elapsed>=i*8&&elapsed<(i+1)*8;if(i===4){const walking=active&&((t>=2&&t<4)||(t>=5.5&&t<7.5));const u=t<2?0:t<4?(t-2)/2:t<5.5?1:t<7.5?1-(t-5.5)/2:0,offset=-1.8*u;const m=moves[i],hold=[.1+offset,.94,-1.25];let p=m.from;if(t>=1&&t<2)p=mix(m.from,hold,t-1);else if(t>=2&&t<4)p=hold;else if(t>=4&&t<4.5)p=mix(hold,[-1.7,.94,-.52],(t-4)*2);else if(t>=4.5&&t<5)p=mix([-1.7,.94,-.52],m.to,(t-4.5)*2);else if(t>=5)p=m.to;return {t,active,walking,offset,p,phase:(t<5.5?t-2:t-5.5)*Math.PI*2/.5};}const m=moves[i],up=m.from.map((v,j)=>j===1?1.03:v),over=m.to.map((v,j)=>j===1?1.03:v);let p=m.from;if(t>=3&&t<4)p=mix(m.from,up,t-3);else if(t>=4&&t<5.5)p=mix(up,over,(t-4)/1.5);else if(t>=5.5&&t<6.5)p=mix(over,m.to,t-5.5);else if(t>=6.5)p=m.to;return {t,p,active};}
+function playbackStatus(){const i=Math.floor(elapsed/8),t=elapsed%8;const stage=i===4?(t<1?'从小台抓盒':t<2?'抬起小盒':t<4?'持盒侧向步行':t<5?'放入 A 台篮筐':t<5.5?'松手收臂':t<7.5?'空手返回':'站立'):(t<2?'伸手接近':t<3?'夹持元件':t<4?'抬升':t<5.5?'搬移':t<6.5?'降低放置':t<7?'松开':'收回手臂');const text=(playing?'演示中 · ':'已暂停 · ')+(i<5?`${tasks[i].id} ${tasks[i].name} / ${stage}`:'整轮完成 / 物料即将重置');const output=document.getElementById('motionStatus');if(output.textContent!==text)output.textContent=text;document.getElementById('motionProgress').value=elapsed;document.getElementById('play').textContent=playing?'暂停演示':'播放演示';}
+document.getElementById('play').onclick=()=>{playing=!playing;lastFrame=null;playbackStatus();};
+document.getElementById('replay').onclick=()=>{elapsed=0;playing=true;lastFrame=null;playbackStatus();draw();};
+document.getElementById('speed').onchange=e=>{speed=Number(e.target.value);};
+document.getElementById('walkDemo').onclick=()=>{elapsed=32;playing=true;lastFrame=null;playbackStatus();draw();};
+const taskList=document.getElementById('tasks');
+tasks.forEach((t,i)=>{const b=document.createElement('button');b.className='task';b.style.setProperty('--c',t.color);b.setAttribute('aria-pressed','false');b.innerHTML=`<span class="num">${t.id}</span><span><b>${t.name}</b><small>${t.sub}</small></span>`;b.onclick=()=>{selected=selected===i?-1:i;document.querySelectorAll('.task').forEach((e,j)=>{e.classList.toggle('active',j===selected);e.setAttribute('aria-pressed',String(j===selected));});document.getElementById('detail').textContent=selected<0?'R1–R4 定点搬运工业元件，R5 从 D 小台拿盒并行走送入 A 台篮筐；五台机器人依次演示。':`${t.id} ${t.name}：${t.desc}`;draw();};taskList.append(b);});
+function proj(p){const x=p[0],y=p[1]-.8,z=p[2];const a=x*Math.cos(yaw)-z*Math.sin(yaw),b=x*Math.sin(yaw)+z*Math.cos(yaw);const v=y*Math.cos(pitch)-b*Math.sin(pitch),d=y*Math.sin(pitch)+b*Math.cos(pitch);const k=Math.min(W/8.6,H/7.3)*zoom*12/(12-d);return [W*.5+a*k,H*.55-v*k,d];}
+function shade(hex,n){let h=hex.slice(1);return '#'+[0,2,4].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(h.slice(i,i+2),16)*n))).toString(16).padStart(2,'0')).join('');}
+function face(points,color,stroke='#ffffff16'){faces.push({points,color,stroke,depth:points.reduce((s,p)=>s+proj(p)[2],0)/points.length});}
+function box(x,y,z,w,h,d,c){const p=[[x-w/2,y,z-d/2],[x+w/2,y,z-d/2],[x+w/2,y,z+d/2],[x-w/2,y,z+d/2],[x-w/2,y+h,z-d/2],[x+w/2,y+h,z-d/2],[x+w/2,y+h,z+d/2],[x-w/2,y+h,z+d/2]];[[[0,1,5,4],.72],[[1,2,6,5],.85],[[2,3,7,6],.96],[[3,0,4,7],.8],[[4,5,6,7],1.13]].forEach(([q,n])=>face(q.map(i=>p[i]),shade(c,n)));}
+function segment(a,b,r,c){const dx=b[0]-a[0],dy=b[1]-a[1],dz=b[2]-a[2],len=Math.hypot(dx,dy,dz);let u=Math.abs(dy/len)<.9?[0,1,0]:[1,0,0];let v=[dy*u[2]-dz*u[1],dz*u[0]-dx*u[2],dx*u[1]-dy*u[0]],vl=Math.hypot(...v);v=v.map(n=>n/vl*r);u=[dy*v[2]-dz*v[1],dz*v[0]-dx*v[2],dx*v[1]-dy*v[0]];let ul=Math.hypot(...u);u=u.map(n=>n/ul*r);const ring=p=>Array.from({length:8},(_,i)=>p.map((n,j)=>n+u[j]*Math.cos(i*Math.PI/4)+v[j]*Math.sin(i*Math.PI/4)));const aa=ring(a),bb=ring(b);face(bb,c);for(let i=0;i<8;i++)face([aa[i],aa[(i+1)%8],bb[(i+1)%8],bb[i]],shade(c,.7+.3*(i/7)));}
+function line(a,b,color='#7397ad',dash=false){lines.push({a,b,color,dash});}
+function tag(p,text,color='#b9cedc'){tags.push({p,text,color});}
+function floorRect(x,z,w,d,c){face([[x-w/2,.014,z-d/2],[x+w/2,.014,z-d/2],[x+w/2,.014,z+d/2],[x-w/2,.014,z+d/2]],c,'#ffffff10');}
+function robot(t,i){const state=motion(i),x=t.x+(i===4?state.offset:0),z=t.z,c='#d2d8dc',joint='#263039';const forward=t.dir===0?[0,1]:[t.dir,0],side=[forward[1],-forward[0]];const pos=(s,y,f)=>[x+side[0]*s+forward[0]*f,y,z+side[1]*s+forward[1]*f];
+ if(showZones){const ring=Array.from({length:36},(_,j)=>[x+.36*Math.cos(j*Math.PI/18),.025,z+.36*Math.sin(j*Math.PI/18)]);face(ring,selected===i?t.color+'55':t.color+'20',t.color+'70');}
+   [-1,1].forEach(s=>{const stride=state.walking?Math.sin(state.phase)*s*.06:0,lift=state.walking?Math.max(0,Math.sin(state.phase)*s)*.075:0;let foot=pos(s*.1+stride,.025+lift,.045);box(foot[0],foot[1],foot[2],t.dir===0?.105:.23,.065,t.dir===0?.23:.105,joint);segment(pos(s*.1+stride,.12+lift,0),pos(s*.1+stride*.5,.37+lift*.4,.015),.048,c);segment(pos(s*.1+stride*.5,.42+lift*.4,.015),pos(s*.1,.67,0),.065,c);segment(pos(s*.1+stride*.5,.355+lift*.4,.015),pos(s*.1+stride*.5,.435+lift*.4,.015),.067,joint);segment(pos(s*.1,.64,0),pos(s*.1,.72,0),.071,joint);});
+  box(x,.69,z,t.dir===0?.3:.2,.13,t.dir===0?.2:.3,joint);box(x,.82,z,t.dir===0?.25:.19,.1,t.dir===0?.19:.25,joint);box(x,.92,z,t.dir===0?.35:.22,.22,t.dir===0?.22:.35,c);
+  box(x,1.14,z,.08,.035,.08,joint);box(x,1.175,z,.19,.145,.17,c);let visor=pos(0,1.19,.087);box(visor[0],visor[1],visor[2],t.dir===0?.175:.018,.11,t.dir===0?.018:.175,'#101c26');
+  const sensor=pos(0,1.23,.1);box(sensor[0],sensor[1],sensor[2],t.dir===0?.05:.008,.018,t.dir===0?.008:.05,'#447584');
+  [-1,1].forEach(s=>{const shoulder=pos(s*.21,1.065,0),rest=pos(s*.21,.84,.15);let hand=rest;segment(pos(s*.175,1.065,0),shoulder,.065,joint);
+   if(i===4){const grip=[state.p[0]+s*.115,state.p[1]+.07,state.p[2]];if(state.active&&state.t<5.5)hand=state.t<1?mix(rest,grip,state.t):state.t<5?grip:mix(grip,rest,(state.t-5)*2);else hand=pos(s*.23,.84,state.walking?-Math.sin(state.phase)*s*.12:.15);}else if(state.active){const gap=state.t<3?.14-.045*Math.max(0,state.t-2):state.t<6.5?.095:.095+.045*Math.min(1,(state.t-6.5)*2);const height=moves[i].kind==='cover'?.035:.065;const grip=[state.p[0]+side[0]*s*gap,state.p[1]+height,state.p[2]+side[1]*s*gap];hand=state.t<2?mix(rest,grip,state.t/2):state.t<7?grip:mix(grip,rest,state.t-7);}
+   const elbow=[(shoulder[0]+hand[0])/2+side[0]*s*.09,(shoulder[1]+hand[1])/2-.12,(shoulder[2]+hand[2])/2+side[1]*s*.09];segment(shoulder,elbow,.044,c);segment(elbow,hand,.038,c);box(elbow[0],elbow[1]-.045,elbow[2],.085,.09,.085,joint);box(hand[0],hand[1]-.035,hand[2],.065,.07,.065,joint);});
+  const chest=pos(0,.965,.117);box(chest[0],chest[1],chest[2],t.dir===0?.17:.012,.1,t.dir===0?.012:.17,joint);const light=pos(0,1.045,.126);box(light[0],light[1],light[2],t.dir===0?.09:.008,.012,t.dir===0?.008:.09,selected===i||state.active?t.color:'#617d8b');tag([x,1.56,z],`${t.id} · G1 / ${t.name}`,t.color);
+}
+ function table(x,z,w,d,name){for(const dz of [-d/2+.17,d/2-.17])for(const dx of [-w/2+.17,w/2-.17])box(x+dx,0,z+dz,.09,.53,.09,'#455b69');box(x,.51,z,w,.09,d,'#9bb1bf');box(x,.44,z,w-.12,.08,d-.12,'#294554');tag([x,.72,z+d/2+.15],name,'#d2e8f3');}
+function basket(x,z,w,d,c){box(x,.6,z,w,.025,d,c);for(const s of [-1,1]){box(x+s*(w/2-.012),.625,z,.024,.15,d,c);box(x,.625,z+s*(d/2-.012),w,.15,.024,c);}}
+function component(x,y,z,kind){
+ if(kind==='smallbox'){box(x,y,z,.2,.14,.16,'#b59a70');box(x,y+.14,z,.205,.012,.165,'#d0b88f');box(x,y+.153,z,.045,.003,.165,'#8b785a');return;}
+ if(kind==='carrier'){box(x,y,z,.3,.025,.24,'#c29b63');for(const s of [-1,1]){box(x+s*.14,y+.025,z,.02,.13,.24,'#a78350');box(x,y+.025,z+s*.11,.3,.13,.02,'#a78350');}return;}
+ if(kind==='cover'){box(x,y,z,.17,.035,.14,'#a6b3bd');box(x,y+.035,z,.12,.025,.09,'#657e8f');return;}
+ box(x,y,z,.15,.1,.13,'#8b9eac');box(x,y+.1,z,.17,.018,.15,'#bdc8ce');
+ for(const dx of [-.055,.055])for(const dz of [-.045,.045])box(x+dx,y+.118,z+dz,.012,.005,.012,'#405460');
+ if(kind==='module'){box(x,y+.12,z,.075,.004,.05,'#344e61');for(let i=0;i<3;i++)box(x-.035+i*.035,y+.035,z+.067,.018,.045,.004,'#3d5261');}
+}
+function build(){faces=[];lines=[];tags=[];
+ box(0,-.14,0,5,.14,5,'#334c5c');
+ for(let n=-2.5;n<=2.5;n+=.5){face([[n-.004,.006,-2.5],[n+.004,.006,-2.5],[n+.004,.006,2.5],[n-.004,.006,2.5]],'#476171');face([[-2.5,.006,n-.004],[2.5,.006,n-.004],[2.5,.006,n+.004],[-2.5,.006,n+.004]],'#476171');}
+ if(showZones){floorRect(0,2.1,5,.8,'#28506a');floorRect(1.8,-2,1.4,1,'#625639');}
+ table(-1.7,.25,1.2,2,'A · 定点搬运 / 2 × 1.2 × 0.6 m');table(1.25,.85,2,1.2,'B · 抓取入篮 / 2 × 1.2 × 0.6 m');
+ for(const dx of [-.49,.49])for(const dz of [-.29,.29])box(1.8+dx,0,-2+dz,.07,.54,.07,'#455b69');
+ box(1.8,.54,-2,1.2,.06,.8,'#8d9da4');
+ box(1.8,.6,-2.02,.29,.025,.2,'#344c5c');box(1.8,.625,-2.07,.055,.15,.055,'#455b69');
+ box(1.8,.76,-2.07,.66,.4,.045,'#203644');box(1.8,.785,-2.042,.6,.345,.012,'#367d98');
+ box(1.64,.815,-2.033,.22,.26,.006,'#23536c');box(1.93,.965,-2.033,.24,.025,.006,'#78dbc4');box(1.93,.895,-2.033,.24,.018,.006,'#97bfd1');box(1.93,.85,-2.033,.24,.018,.006,'#97bfd1');
+ box(1.71,.6,-1.78,.43,.025,.16,'#263d4b');
+ for(let r=0;r<3;r++)for(let c=0;c<10;c++)box(1.53+c*.039,.625,-1.83+r*.042,.027,.006,.026,'#829ba9');
+ box(2.09,.6,-1.77,.2,.008,.23,'#46616f');box(2.09,.608,-1.78,.065,.035,.105,'#becdd4');
+ tag([1.8,1.4,-2],'C · 右后角电脑台 / 1.2 × 0.8 × 0.6 m','#e6c68b');
+ // Task props sit on the specified 0.60 m worktops.
+ box(-1.42,.6,.57,.42,.015,.36,'#3d7773');box(-1.42,.6,1.02,.42,.015,.36,'#69a595');
+ box(-1.42,.6,-.25,.36,.015,.28,'#60764e');basket(-1.86,.03,.46,.38,'#719e66');
+ table(.1,-1,.5,.5,'D · 取盒小台 / 0.5 × 0.5 × 0.6 m');basket(-1.7,-.52,.46,.4,'#b28e55');
+ if(showZones){floorRect(-.8,-1.65,2.4,.65,'#564e39');line([-1.7,.04,-1.65],[.1,.04,-1.65],'#e6b86b',true);tag([-.8,.05,-2.08],'R5 · D 台取盒 → A 台入篮','#e6c68b');}
+ box(.5,.6,.48,.32,.015,.32,'#416579');basket(.96,.58,.46,.46,'#579bc0');
+ box(1.5,.6,.48,.32,.015,.32,'#64557e');basket(1.96,.58,.46,.46,'#9b84bc');
+ moves.forEach((m,i)=>{const p=motion(i).p;component(p[0],p[1],p[2],m.kind);});
+ tasks.forEach(robot);
+ // Envelope and dimensions are technical overlays, not physical barriers.
+ for(const x of [-2.5,2.5])for(const z of [-2.5,2.5])line([x,0,z],[x,4,z],'#7293a24a',true);
+ for(const z of [-2.5,2.5])line([-2.5,4,z],[2.5,4,z],'#7293a24a',true);
+ for(const x of [-2.5,2.5])line([x,4,-2.5],[x,4,2.5],'#7293a24a',true);
+ line([-2.5,0,2.88],[2.5,0,2.88]);for(const x of [-2.5,2.5])line([x,0,2.78],[x,0,2.98]);tag([0,0,3.03],'5.00 m');
+ line([-2.88,0,-2.5],[-2.88,0,2.5]);for(const z of [-2.5,2.5])line([-2.98,0,z],[-2.78,0,z]);tag([-3.03,0,0],'5.00 m');tag([2.5,3.1,-2.5],'净高 4.00 m');
+ if(showZones)tag([0,.05,2.14],'前侧观看预留带 · 0.80 m','#9ed3ef');
+}
+function draw(){if(!W||!H)return;ctx.clearRect(0,0,W,H);build();faces.sort((a,b)=>a.depth-b.depth);for(const f of faces){const ps=f.points.map(proj);ctx.beginPath();ps.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=f.color;ctx.fill();ctx.strokeStyle=f.stroke;ctx.lineWidth=.65;ctx.stroke();}
+ for(const l of lines){const a=proj(l.a),b=proj(l.b);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.strokeStyle=l.color;ctx.lineWidth=1;ctx.setLineDash(l.dash?[4,6]:[]);ctx.stroke();}ctx.setLineDash([]);
+ if(showLabels){ctx.font=`${W<550?10:11}px "PingFang SC",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';for(const t of tags){const p=proj(t.p),w=ctx.measureText(t.text).width+16;ctx.fillStyle='#0c1b26dc';ctx.beginPath();ctx.roundRect(p[0]-w/2,p[1]-12,w,24,4);ctx.fill();ctx.fillStyle=t.color;ctx.fillText(t.text,p[0],p[1]);}}
+}
+function resize(){const r=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw();}
+function view(mode){document.querySelectorAll('#perspective,#top,#front').forEach(b=>b.classList.toggle('active',b.id===mode));if(mode==='top'){yaw=0;pitch=Math.PI/2;}else if(mode==='front'){yaw=0;pitch=.12;}else{yaw=.67;pitch=.57;}draw();}
+['perspective','top','front'].forEach(id=>document.getElementById(id).onclick=()=>view(id));
+document.getElementById('reset').onclick=()=>{zoom=1;view('perspective');};
+document.getElementById('labels').onclick=e=>{showLabels=!showLabels;e.currentTarget.classList.toggle('active',showLabels);e.currentTarget.setAttribute('aria-pressed',String(showLabels));draw();};
+document.getElementById('zones').onclick=e=>{showZones=!showZones;e.currentTarget.classList.toggle('active',showZones);e.currentTarget.setAttribute('aria-pressed',String(showZones));draw();};
+const pointers=new Map();function distance(){const p=[...pointers.values()];return p.length===2?Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y):0;}
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});});
+canvas.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;const prev=pointers.get(e.pointerId),before=distance();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2){if(before>0)zoom=Math.max(.55,Math.min(2.3,zoom*distance()/before));}else{yaw-=(e.clientX-prev.x)*.008;pitch=Math.max(.09,Math.min(Math.PI/2,pitch+(e.clientY-prev.y)*.006));document.querySelectorAll('#perspective,#top,#front').forEach(b=>b.classList.remove('active'));}draw();});
+['pointerup','pointercancel','lostpointercapture'].forEach(type=>canvas.addEventListener(type,e=>pointers.delete(e.pointerId)));
+canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.55,Math.min(2.3,zoom*Math.exp(-e.deltaY*.001)));draw();},{passive:false});
+canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')yaw-=.1;if(e.key==='ArrowRight')yaw+=.1;if(e.key==='ArrowUp')pitch=Math.min(Math.PI/2,pitch+.1);if(e.key==='ArrowDown')pitch=Math.max(.09,pitch-.1);if(e.key==='+'||e.key==='=')zoom=Math.min(2.3,zoom*1.1);if(e.key==='-')zoom=Math.max(.55,zoom/1.1);draw();});
+new ResizeObserver(resize).observe(canvas);
+document.addEventListener('visibilitychange',()=>{lastFrame=null;});
+function animate(now){if(playing&&!document.hidden){if(lastFrame!==null)elapsed=(elapsed+Math.min((now-lastFrame)/1000,.1)*speed)%42;lastFrame=now;playbackStatus();draw();}else lastFrame=null;requestAnimationFrame(animate);}
+playbackStatus();requestAnimationFrame(animate);
+</script>
+</body>
+</html>
